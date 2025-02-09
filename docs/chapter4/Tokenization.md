@@ -64,7 +64,7 @@ h, e, l, o, w, r, d, hel, low, wor, orld
   - 例如，“does”，“done”，“doing”，“did”都会被还原为“do”。
 - **词干提取（Stemming）**：
   - 词干提取是将单词缩减到词干的形式，这一过程有时可能不会产生一个标准的词典词汇。
-  - 例如，“cities”会被提取为“city”，“children”会被提取为“childen”（注意，这里的“childen”并不是一个正确的英文单词，但它是一个有效的词干），“teeth”会被提取为“tooth”。
+  - 例如，“cities”会被提取为“city”，“children”会被提取为“children”（注意，这里的“children”并不是一个正确的英文单词，但它是一个有效的词干），“teeth”会被提取为“tooth”。
   
 ## 2.3区别3：中文分词需要考虑粒度问题
 例如「中国科学技术大学」就有很多种分法：
