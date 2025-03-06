@@ -37,7 +37,7 @@ Q、K 和 V 分别代表 Query（查询）、Key（键）和 Value（值）。�
 
 每种注意力计算都有相应的计算公式，但本质上都是利用Query和Key之间的相似度，对Value进行加权求和。Transformer使用的是缩放点积注意力（Scaled Dot-Product Attention），其计算公式如下：
 $$Attention(Q, K, V)=SoftMax(\frac{QK^T}{\sqrt{d_k}})V$$
-这里的 $Q、K、V$ 都是对**输入词向量** $x$ 的线性映射。
+这里的 $Q, K, V$ 都是对**输入词向量** $x$ 的线性映射。
 - $Q = linear_q(x)$
 - $K = linear_k(x)$
 - $V = linear_v(x)$
@@ -68,7 +68,7 @@ $SoftMax$ 函数用于对加权系数的归一化，使其为非负且加起来�
 
 ### 多头注意力机制（Multi-Head Attention）
 
-在上述注意力计算中，我们训练能学习到的参数很有限，用于 $Q,K,V$ 线性映射的函数或矩阵是可以学习。为了让模型更加多样、适配更多的任务，Transformer参考CNN中**多通道**的思路，提出了多头注意力机制。这样可以让模型能学习到更多的参数，模型也能更加灵活、多样和泛用。
+在上述注意力计算中，我们训练能学习到的参数很有限，用于 $Q, K, V$ 线性映射的函数或矩阵是可以学习。为了让模型更加多样、适配更多的任务，Transformer参考CNN中**多通道**的思路，提出了多头注意力机制。这样可以让模型能学习到更多的参数，模型也能更加灵活、多样和泛用。
 
 #### 计算步骤
 
@@ -76,7 +76,7 @@ $SoftMax$ 函数用于对加权系数的归一化，使其为非负且加起来�
 
 ![图片描述](./images/C3image9.png)
     
-Multi-Head Attention把 $Q、K、V$ 通过参数矩阵映射，然后再做Attention，把这个过程重复做 h 次，结果拼接起来。<p>
+Multi-Head Attention把 $Q, K, V$ 通过参数矩阵映射，然后再做Attention，把这个过程重复做 h 次，结果拼接起来。<p>
 具体用公式表达：<p>
 $MultiHead(Q,K,V)=Concat(head_1,\ldots,head_h)W^O$
 $head_i = Attention(QW_i^Q,KW_i^K,VW_i^V)$<p>
@@ -107,7 +107,7 @@ $ (d_{model}\times{d}_{k})\text{、}(d_{model}\times{d}_{k})\text{、}(d_{model}
 
 ### 自注意力机制（Self Attention）
 
-自注意力又称内部注意力。顾名思义，Self Attention 是在**序列内部**进行注意力运算，旨在寻找序列内部的联系。其原理可进一步解释为：注意力运算的输入是 $Q（Query）、K（Key）、V（Value）$ ，对于**自注意力**而言，是对同一个输入序列 $X$，分别进行三种独立的线性变换得到 $Q_X、K_X、V_X$ 后，将其作为输入并进行注意力运算，体现在公式上即 $\text{Attention} (Q_X, K_X, V_X)$。
+自注意力又称内部注意力。顾名思义，Self Attention 是在**序列内部**进行注意力运算，旨在寻找序列内部的联系。其原理可进一步解释为：注意力运算的输入是 $Q(Query), K(Key), V(Value)$ ，对于**自注意力**而言，是对同一个输入序列 $X$，分别进行三种独立的线性变换得到 $Q_X, K_X, V_X$ 后，将其作为输入并进行注意力运算，体现在公式上即 $\text{Attention} (Q_X, K_X, V_X)$。
 
 |优点|缺点|
 |----|----|
