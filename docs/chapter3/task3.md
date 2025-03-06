@@ -83,7 +83,7 @@ $head_i = Attention(QW_i^Q,KW_i^K,VW_i^V)$<p>
 其中
 $W_i^Q\text{、}W_i^K\text{、}W_i^V\text{、}W^O$ 
 的权重矩阵的维度分别为<p>
-$ (d_{model}\times{d}_{k})\text{、}(d_{model}\times{d}_{k})\text{、}(d_{model}\times{d}_{v})\text{、}(h{d}_{v}\times{d}_{model}) $ 
+$(d_{model}\times{d}_{k})\text{、}(d_{model}\times{d}_{k})\text{、}(d_{model}\times{d}_{v})\text{、}(h{d}_{v}\times{d}_{model})$ 
 
 这些权重矩阵都是可以**训练的**（不同头的矩阵**参数不共享**）。这样就能让模型更加的多样、灵活和泛用。
 
