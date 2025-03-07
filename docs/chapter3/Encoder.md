@@ -62,7 +62,10 @@ Q、K 和 V 分别代表 Query（查询）、Key（键）和 Value（值）。�
 2. **Key (K):** 这些是可以查询的条目或“索引”。在自注意力机制中，每个序列元素都有一个对应的键。<p>
 3. **Value (V):** 对于每一个“键”，都有一个与之关联的“值”，它代表实际的信息内容。当查询匹配到一个特定的键时，其对应的值就会被选中并返回。<p>
 <p>这种思路与数据库查询非常相似，可以将 Query 看作是搜索查询，Key 看作是数据库索引，而 Value 则是实际的数据库条目。
-<p>在 "Attention Is All You Need" 这篇 Transformer 论文中，这些术语首次被广泛地采纳和使用。注意力机制的核心思想是：对于给定的 Query，计算其与所有 Keys 的相似度，然后用这些相似度对 Values 进行加权求和，得到最终的输出。
+<p>在 "Attention Is All You Need" 这篇 Transformer 论文中，这些术语首次被广泛地采纳和使用。注意力机制的核心思想是：
+
+> **对于给定的 Query，计算其与所有 Keys 的相似度，然后用这些相似度对 Values 进行加权求和，得到最终的输出。**
+
 <p>尽管这些术语在 Transformer 和许多现代 NLP 模型中被普遍接受，但它们的选择并没有特定的历史背景或来源；它们只是直观的命名，用来描述注意力计算的各个部分。
     
 ## 2.1 缩放点积注意力(Scaled Dot-Product Attention)
@@ -82,23 +85,23 @@ self-attention 的输入是序列词向量，此处记为 x。而 x 经过一个
 ![图片描述](./images/C3image6.png)
     
 注意：这里的 linear_q(x)，linear_k(x)，linear_v(x) 相互独立，通过 softmax 函数对 Query（Q）和 Key（K）向量缩放点积的分数进行归一化，得到权重系数（attention weights），值都介于0到1之间。按照公式：
-$Attention(Q, K, V)=softmax(\frac{QK^T}{\sqrt{d_k}})V$
+$$Attention(Q, K, V)=Softmax(\frac{QK^T}{\sqrt{d_k}})V$$
 使用权重系数对Value（V）向量进行加权求和，得到最终的注意力输出 Attention(Q, K, V)。 
 
 ### 2.1.1 如何得到缩放因子
 ![图片描述](./images/C3image7.png)
-在多头注意力机制中，参数 $d_k$ (每个头的维度）通常是由总的模型维度 $d_{model}$ 和多头注意力的头数 (h) 决定的。具体来说，$d_k$ 通常是这样计算的：$d_k=\frac{d_{\mathrm{model}}}h$
+在多头注意力机制中，参数 $d_k$ （每个头的维度）通常是由总的模型维度 $d_{model}$ 和多头注意力的头数 (h) 决定的。具体来说，$d_k$ 通常是这样计算的：$d_k=\frac{d_{\mathrm{model}}}h$
 
 这样做有几个原因：
 1. 参数平衡：通过这种方式可以确保每个头的参数数量相同，并且总的参数数量与单头注意力相当。这有助于模型的扩展性和可管理性。
 2. 计算效率：因为 $d_k$ 是 $d_{model}$ 的一个因子，所以在进行矩阵运算时，这能更有效地利用硬件加速。
 3. 多样性：当使用多个头时，每个头都在不同的子空间中进行操作，这有助于模型捕获输入之间多样性更丰富的关系。
-4. 可解释性和调试：选择一个合适的 $d_k$ 可以使每个注意力头更易于解释和调试，因为每个头的维度都相对较小。在某些特殊应用或研究场景下，可以手动设置 $d_k$ 。
+4. 可解释性和调试：选择一个合适的 $d_k$ 可以使每个注意力头更易于解释和调试，因为每个头的维度都相对较小。在某些特殊应用或研究场景下，**可以手动设置** $d_k$ 。
     
 ### 2.1.2 缩放因子的作用
 这个公式相比于正常的点积注意力多了一个缩放因子 ${\sqrt{d_k}}$，这个缩放因子可以防止内积过大，防止它经过 softmax 后落入饱和区间，因为饱和区的梯度几乎为0，容易发生梯度消失。<p>
 如果忽略激活函数softmax的话，那么事实上它就是Q，K，V三个矩阵相乘，最后的结果是一个维度为 $（n·d_v）$ 的矩阵。于是我们可以认为：这是一个Attention层，将序列Q编码成了一个新的 $（n·d_v）$ 的序列。<p>
-在缩放点积注意力(scaled dot-product attention) 中，还有mask部分，在训练时它将被关闭，在测试或者推理时，它将被打开去遮蔽当前预测词后面的序列。
+在缩放点积注意力(scaled dot-product attention) 中，还有mask部分，在训练时它将被关闭，在测试或者推理时，**它将被打开去遮蔽当前预测词后面的序列**。
     
 ### 2.1.3 计算 attention 时为何选择点乘
 (1) 计算效率更高，可以通过矩阵乘法进行并行优化，尤其适合大规模的模型训练和推理。<p>
@@ -109,7 +112,7 @@ $Attention(Q, K, V)=softmax(\frac{QK^T}{\sqrt{d_k}})V$
     
 ![图片描述](./images/C3image8.png)
     
-多头(Multi-Head) 的方式是将**多个 head 的输出 z**，进行**拼接**（**concat**）后，通过线性变换得到**最后的输出 z**。
+多头(Multi-Head) 的方式是将**多个 head 的输出 z**，进行**拼接**（**Concat**）后，通过线性变换得到**最后的输出 z**。
     
 ![图片描述](./images/C3image9.png)
     
@@ -119,10 +122,13 @@ $head_i=Attention(QW_i^Q,KW_i^K,VW_i^V)$
 其中
 $W_i^Q\text{、}W_i^K\text{、}W_i^V$ 
 的权重矩阵的维度分别为<p>
-<p>$(d_{k}\times\tilde{d}_{k})\text{、}(d_{k}\times\tilde{d}_{k})\text{、}(d_{v}\times\tilde{d}_{v})$ <p>
+$ (d_{k}\times\tilde{d}_{k})\text{、}(d_{k}\times\tilde{d}_{k})\text{、}(d_{v}\times\tilde{d}_{v}) $ 
+<p>
 然后通过
 
 $MultiHead(Q,K,V)=Concat(head_1,\ldots,head_h)$
+
+>Concat（Concatenate，拼接）将所有头的输出沿着**特征维度**拼接，形成一个大矩阵。
 
 最后得到一个 
 
@@ -147,13 +153,13 @@ $h=8\text{, }d_k=d_v=d_{model}/4=64$
 ### 2.2.2 多头注意力的计算：
 - **线性变换**：输入序列经历可学习的线性变换，将其投影到多个较低维度的表示，称为“头”。每个头关注输入的不同方面，使模型能够捕捉各种模式。
 - **缩放点积注意力**：每个头独立地计算输入序列的查询、键和值表示之间的注意力分数。这一步涉及计算令牌及其上下文之间的相似度，除以模型深度的平方根进行缩放。得到的注意力权重突出了每个令牌相对于其他令牌的重要性。
-- **连接和线性投影**：来自所有头的注意力输出被连接并线性投影回原始维度。这个过程将来自多个头的见解结合起来，增强了模型理解序列内复杂关系的能力。
+- **拼接和线性投影**：来自所有头的注意力输出被pinjie并线性投影回原始维度。这个过程将来自多个头的见解结合起来，增强了模型理解序列内复杂关系的能力。
     
 ## 2.3 自注意力机制(Self Attention)
 首先我们来定义一下什么是“self-Attention” 。Cheng 等人在论文《Long Short-Term Memory-Networks for Machine Reading》中将self-Attention 定义为将单个序列或句子的不同位置关联起来以获得更有效表示的机制。<p>
 在自注意力中，Query、Key和Value都来自于同一个输入序列。它允许模型在处理序列数据时，同时考虑序列中所有元素之间的关系。
 1. Encoder Self-Attention：Encoder 阶段捕获当前 word 和其他输入词的关联；
-2. MaskedDecoder Self-Attention ：Decoder 阶段捕获当前 word 与已经看到的解码词之间的关联，从矩阵上直观来看就是一个带有 mask 的三角矩阵；
+2. Masked Decoder Self-Attention ：Decoder 阶段捕获当前 word 与已经看到的解码词之间的关联，从矩阵上直观来看就是一个带有 mask 的三角矩阵；
 3. Encoder-Decoder Attention：就是将 Decoder 和 Encoder 输入建立联系，和之前那些普通 Attention 一样；
     
 ![图片描述](./images/C3image10.png)
