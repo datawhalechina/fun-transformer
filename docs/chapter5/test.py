@@ -110,7 +110,7 @@ n_heads = 8     # Multi-Head Attention设置为8
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout=0.1, max_len=5000):
         super(PositionalEncoding,self).__init__()
-        self.dropout = nn.Dropout(p=dropout)
+        self.dropout = nn.Dropout(p=dropout)                                # dropout层 用于防止过拟合 训练时开启，测试时关闭
         pos_table = np.array([
         [pos / np.power(10000, 2 * i / d_model) for i in range(d_model)]
         if pos != 0 else np.zeros(d_model) for pos in range(max_len)])
@@ -128,7 +128,7 @@ class PositionalEncoding(nn.Module):
             _type_: _description_
         """
         enc_inputs += self.pos_table[:enc_inputs.size(1),:]   # 两个embedding相加，参考https://www.cnblogs.com/d0main/p/10447853.html
-        return self.dropout(enc_inputs).to(device)
+        return self.dropout(enc_inputs).to(device)            # 输出经过一个dropout层
 
 '''
 Mask句子中没有实际意义的占位符，例如’我 是 学 生 P’ ，P对应句子没有实际意义，所以需要被Mask，Encoder_input 和Decoder_input占位符
@@ -139,6 +139,7 @@ Mask句子中没有实际意义的占位符，例如’我 是 学 生 P’ ，P
 果 seq_k 某个位置的值等于 0，那么对应位置就是 True，否则即为 False。举个例子，输入为 seq_data = [1, 2, 3, 4, 0]，
 seq_data.data.eq(0) 就会返回 [False, False, False, False, True]
 '''
+# Encoder输入Mask，去掉占位符
 def get_attn_pad_mask(seq_q, seq_k):
     """
     此时字还没表示成嵌入向量
@@ -150,17 +151,21 @@ def get_attn_pad_mask(seq_q, seq_k):
           在Decoder_self_att中，seq_q，seq_k 就是dec_input, dec_input
             seq_q (_type_): [batch, tgt_len] [batch, 英文句子长度]
             seq_k (_type_): [batch, tgt_len] [batch, 英文句子长度]
-          在Decoder_Encoder_att中，seq_q，seq_k 就是dec_input, enc_input
+          在Decoder_Encoder_att中，seq_q，seq_k 就是dec_input, enc_input    
             seq_q (_type_): [batch, tgt_len] [batch, 中文句子长度]
             seq_k (_type_): [batch, enc_len] [batch, 英文句子长度]
 
     Returns:
         _type_: [batch_size, len_q, len_k]  元素：T or F
     """
-    batch_size, len_q = seq_q.size()# seq_q 用于升维，为了做attention，mask score矩阵用的
+    batch_size, len_q = seq_q.size()    # seq_q 用于升维，为了做attention，mask score矩阵用的
     batch_size, len_k = seq_k.size()
+    # eq(0)是因为PAD填充元素 'P=0'  
+    # seq_k.data.eq(x)  元素级别的比较操作，返回一个与seq_k相同大小布尔张量，值为True或False seq_k中等于x的位置为True，否则为False
+    # seq_k.data.eq_(x) 就地操作，直接修改seq_k的值 相当于seq_k = seq_k.data.eq(x) 返回一个新的张量
+    # seq_k.data.equal(other_tensor) 判断两个张量是否相等 返回一个bool值
     pad_attn_mask = seq_k.data.eq(0) # 判断 输入那些词index含有P(=0),用1标记 [len_k, d_model]元素全为T,F
-    pad_attn_mask = pad_attn_mask.unsqueeze(1) #[batch, 1, len_k]
+    pad_attn_mask = pad_attn_mask.unsqueeze(1) #插入一个维度 [batch_size, 1, len_k] 
     pad_attn_mask = pad_attn_mask.expand(batch_size, len_q, len_k)    # 扩展成多维度   [batch_size, len_q, len_k]
     return  pad_attn_mask.to(device)
 
